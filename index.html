@@ -277,10 +277,10 @@
     
     /* Professional Glass Morphism System */
     .glass-effect {
-      background: hsla(0, 0%, 100%, 0.08);
-      backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid hsla(0, 0%, 100%, 0.12);
-      box-shadow: var(--shadow-lg);
+      background: rgba(255, 255, 255, 0.09);
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       position: relative;
       overflow: hidden;
     }
@@ -290,16 +290,16 @@
       position: absolute;
       inset: 0;
       background: linear-gradient(135deg, 
-        hsla(0, 0%, 100%, 0.08) 0%,
-        hsla(0, 0%, 100%, 0.04) 50%,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 50%,
         transparent 100%);
       pointer-events: none;
       z-index: 1;
     }
     
     .dark .glass-effect {
-      background: hsla(var(--hue-neutral), 20%, 5%, 0.6);
-      border: 1px solid hsla(var(--hue-neutral), 20%, 100%, 0.08);
+      background: rgba(30, 27, 75, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
     
     .dark .glass-effect::before {
@@ -465,6 +465,30 @@
       75% { background-position: 0% 100%; }
     }
     
+    /* Professional Navigation Tabs */
+    .nav-tab {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .nav-tab:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.9);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+    
+    .nav-tab.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    
     /* Professional Card System */
     .card {
       background: var(--neutral-0);
@@ -473,6 +497,158 @@
       border: 1px solid var(--neutral-200);
       overflow: hidden;
       position: relative;
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+    
+    .card:hover {
+      box-shadow: var(--shadow-xl);
+      transform: translateY(-4px);
+      border-color: var(--primary-300);
+    }
+    
+    .dark .card {
+      background: var(--neutral-800);
+      border-color: var(--neutral-700);
+    }
+    
+    .dark .card:hover {
+      border-color: var(--primary-600);
+    }
+    
+    /* Image Gallery Card System */
+    .image-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    
+    .image-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      z-index: 2;
+    }
+    
+    .image-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.2),
+        0 8px 32px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .dark .image-card {
+      background: linear-gradient(135deg, rgba(30, 27, 75, 0.4), rgba(15, 23, 42, 0.6));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .dark .image-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    
+    /* Professional Image Badge System */
+    .image-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+      backdrop-filter: blur(10px);
+      color: var(--neutral-700);
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      z-index: 3;
+      transition: all 0.3s ease;
+    }
+    
+    .image-badge.format-badge {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    
+    .image-badge.size-badge {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      color: white;
+      top: 48px;
+    }
+    
+    .image-badge.status-badge {
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: white;
+      top: 84px;
+    }
+    
+    .dark .image-badge {
+      background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.9));
+      color: var(--neutral-200);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Professional Control Panel for Images */
+    .image-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+      padding: 16px;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 4;
+    }
+    
+    .image-card:hover .image-controls {
+      transform: translateY(0);
+    }
+    
+    .image-controls .control-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .image-controls .control-group:last-child {
+      margin-bottom: 0;
+    }
+    
+    .image-controls input,
+    .image-controls select {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: white;
+      padding: 6px 8px;
+      font-size: 0.75rem;
+      backdrop-filter: blur(10px);
+    }
+    
+    .image-controls input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .image-controls .btn {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      border-radius: 8px;
+      font-weight: 600;
+    }
       transition: all var(--duration-normal) var(--ease-out);
     }
     
@@ -489,18 +665,38 @@
     
     /* Advanced Hover Effects */
     .hover-lift {
-      transition: all var(--duration-normal) var(--ease-back);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       transform-origin: center;
+      position: relative;
     }
     
     .hover-lift:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: var(--shadow-2xl);
+      transform: translateY(-12px) scale(1.03);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1);
     }
     
     .hover-lift:active {
-      transform: translateY(-4px) scale(1.01);
-      transition-duration: var(--duration-fast);
+      transform: translateY(-6px) scale(1.01);
+      transition-duration: 0.15s;
+    }
+    
+    /* Professional Image Gallery Grid */
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+      padding: 1rem 0;
+    }
+    
+    /* Improved Button Animations */
+    .btn {
+      transform: translateY(0);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
     
     /* Professional Form Elements */
@@ -770,16 +966,318 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
+    /* Enhanced Floating Button System */
+    .floating-button {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      box-shadow: 
+        0 8px 32px rgba(102, 126, 234, 0.4),
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: var(--z-fixed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    .floating-button::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #667eea);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+      background-size: 200% 200%;
+      animation: gradientRotate 4s ease-in-out infinite;
+    }
+    
+    .floating-button:hover {
+      transform: translateY(-4px) scale(1.1);
+      box-shadow: 
+        0 16px 48px rgba(102, 126, 234, 0.6),
+        0 8px 24px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      animation-play-state: paused;
+    }
+    
+    .floating-button:hover::before {
+      opacity: 1;
+    }
+    
+    .floating-button:active {
+      transform: translateY(-2px) scale(1.05);
+    }
+    
+    .floating-button-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: inherit;
+      z-index: 1;
+    }
+    
+    .floating-button-tooltip {
+      position: absolute;
+      right: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      margin-right: 12px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .floating-button-tooltip::after {
+      content: '';
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 6px solid transparent;
+      border-left-color: rgba(0, 0, 0, 0.9);
+    }
+    
+    .floating-button:hover .floating-button-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    
+    @keyframes gradientRotate {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    /* Professional Loading States */
+    .shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .shimmer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.4) 50%, 
+        transparent 100%);
+      animation: shimmerEffect 1.5s infinite;
+    }
+    
+    @keyframes shimmerEffect {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    
+    /* Enhanced Progress System */
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      border-radius: 12px;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 100%);
+      animation: progressShine 2s ease-in-out infinite;
+    }
+    
+    @keyframes progressShine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    /* Professional Loading Spinner */
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .loading-spinner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 4px solid transparent;
+      border-top: 4px solid #667eea;
+      border-right: 4px solid #764ba2;
+      border-radius: 50%;
+      animation: spinPrimary 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    
+    .loading-spinner::after {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border: 3px solid transparent;
+      border-bottom: 3px solid #f093fb;
+      border-left: 3px solid #4facfe;
+      border-radius: 50%;
+      animation: spinSecondary 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite reverse;
+    }
+    
+    @keyframes spinPrimary {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes spinSecondary {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Connection Indicator */
+    .connection-indicator {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .connection-indicator.connected {
+      background: #10b981 !important;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+    }
+    
+    .connection-indicator.connecting {
+      background: #f59e0b !important;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    .connection-indicator.disconnected {
+      background: #ef4444 !important;
+    }
+    
+    /* Professional Notification System */
+    .notification {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.08);
+      transform: translateX(-100%) scale(0.9);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .notification.show {
+      transform: translateX(0) scale(1);
+      opacity: 1;
+    }
+    
+    .notification::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    
+    .notification.success::before {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    
+    .notification.error::before {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    
+    .notification.warning::before {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    
+    .dark .notification {
+      background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.9));
+      color: var(--neutral-200);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    
     @media (max-width: 768px) {
       .hover-lift:hover {
         transform: none;
       }
       
+      .image-card:hover {
+        transform: translateY(-4px) scale(1.01);
+      }
+      
       .floating-button {
-        bottom: 1rem;
-        right: 1rem;
+        bottom: 1.5rem;
+        right: 1.5rem;
         width: 56px;
         height: 56px;
+      }
+      
+      .floating-button-tooltip {
+        display: none;
+      }
+      
+      .image-controls {
+        position: static;
+        transform: none;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+        margin-top: 8px;
+        border-radius: 12px;
       }
     }
     
@@ -877,34 +1375,34 @@
           </div>
         </div>
         
-        <h1 class="text-6xl md:text-8xl font-black gradient-text mb-6 animate-bounce-in">
+        <h1 class="text-5xl md:text-7xl font-black gradient-text mb-6 animate-bounce-in leading-tight">
           ImageFlow
-          <span class="block text-4xl md:text-5xl font-light text-slate-600 dark:text-slate-400 mt-2">
-            Professional SaaS
+          <span class="block text-2xl md:text-3xl font-light text-white/80 mt-3">
+            Professional SaaS Platform
           </span>
         </h1>
         
-        <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-8 leading-relaxed animate-fade-in">
-          Professzionális képfeldolgozás vezeték nélküli eszközmegosztással, QR kódos párosítással és veszteségmentes minőségű konverzióval.
+        <p class="text-lg md:text-xl text-white/70 mb-8 leading-relaxed animate-fade-in max-w-3xl mx-auto">
+          Professzionális képfeldolgozás vezeték nélküli eszközmegosztással, QR kódos párosítással és veszteségmentes minőségű konverzióval. Lanczos3 algoritmussal és lossless kimenettel.
         </p>
         
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-slide-in">
-          <div class="stats-card text-center">
-            <div class="text-3xl font-bold gradient-text" id="totalImages">0</div>
-            <div class="text-sm text-slate-600 dark:text-slate-400">Kép betöltve</div>
+        <!-- Professional Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 animate-slide-in">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+            <div class="text-2xl md:text-3xl font-bold text-white mb-1" id="totalImages">0</div>
+            <div class="text-sm text-white/70 font-medium">Feltöltött Kép</div>
           </div>
-          <div class="stats-card text-center">
-            <div class="text-3xl font-bold gradient-text" id="totalProcessed">0</div>
-            <div class="text-sm text-slate-600 dark:text-slate-400">Feldolgozva</div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+            <div class="text-2xl md:text-3xl font-bold text-white mb-1" id="totalProcessed">0</div>
+            <div class="text-sm text-white/70 font-medium">Feldolgozva</div>
           </div>
-          <div class="stats-card text-center">
-            <div class="text-3xl font-bold gradient-text" id="totalStorage">0 MB</div>
-            <div class="text-sm text-slate-600 dark:text-slate-400">Tárhely</div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+            <div class="text-2xl md:text-3xl font-bold text-white mb-1" id="totalStorage">0 MB</div>
+            <div class="text-sm text-white/70 font-medium">Feldolgozott</div>
           </div>
-          <div class="stats-card text-center">
-            <div class="text-3xl font-bold gradient-text" id="connectedCount">0</div>
-            <div class="text-sm text-slate-600 dark:text-slate-400">Eszköz</div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+            <div class="text-2xl md:text-3xl font-bold text-white mb-1" id="connectedCount">0</div>
+            <div class="text-sm text-white/70 font-medium">Csatlakozott</div>
           </div>
         </div>
         
@@ -929,7 +1427,9 @@
   </header>
 
   <!-- Main Content -->
-  <div class="container mx-auto px-6 pb-12">
+  <div class="container mx-auto px-6 pb-12 relative">
+    <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl"></div>
+    <div class="relative z-10">
     
     <!-- Navigation Tabs -->
     <div class="mb-8">
@@ -1356,27 +1856,40 @@
         </div>
       </div>
     </div>
-  </div>
+    
+    </div> <!-- Close relative z-10 div -->
+  </div> <!-- Close main content container -->
 
-  <!-- Floating Action Button -->
-  <button id="floatingAction" class="floating-button">
-    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-    </svg>
+  <!-- Professional Floating Action Button -->
+  <button id="floatingAction" class="floating-button group">
+    <div class="floating-button-inner">
+      <svg class="w-7 h-7 transform group-hover:rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+    </div>
+    <div class="floating-button-tooltip">
+      Gyors Feltöltés
+    </div>
   </button>
 
-  <!-- Progress Modal -->
+  <!-- Professional Progress Modal -->
   <div id="progressModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-md w-full shadow-2xl animate-bounce-in">
+    <div class="glass-effect rounded-3xl p-10 max-w-lg w-full shadow-2xl animate-bounce-in border border-white/20">
       <div class="text-center">
-        <div class="loading-spinner mx-auto mb-4"></div>
-        <h3 id="progressTitle" class="text-xl font-semibold mb-2">Feldolgozás...</h3>
-        <p id="progressText" class="text-slate-600 dark:text-slate-400 mb-4">Kérjük várjon...</p>
-        <div class="progress-bar mb-4">
+        <div class="relative mb-6">
+          <div class="loading-spinner mx-auto"></div>
+          <div class="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 rounded-full opacity-20 blur-xl animate-pulse"></div>
+        </div>
+        <h3 id="progressTitle" class="text-2xl font-bold mb-3 text-white">Feldolgozás...</h3>
+        <p id="progressText" class="text-white/70 mb-6 text-lg">Kérjük várjon...</p>
+        <div class="progress-bar mb-6">
           <div id="progressFill" class="progress-fill" style="width: 0%"></div>
         </div>
-        <div class="text-sm text-slate-500">
-          <span id="progressCount">0</span> / <span id="progressTotal">0</span>
+        <div class="flex justify-between items-center text-white/60">
+          <span class="text-sm font-medium">
+            <span id="progressCount">0</span> / <span id="progressTotal">0</span> kép
+          </span>
+          <span class="text-sm font-medium" id="progressPercent">0%</span>
         </div>
       </div>
     </div>

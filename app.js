@@ -665,18 +665,22 @@ class ImageFlowApp {
       imageData.processingTime.toFixed(0) : null;
 
     return `
-      <div class="card hover-lift animate-fade-in">
+      <div class="glass-effect rounded-2xl overflow-hidden hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl animate-fade-in">
         <div class="aspect-square overflow-hidden relative group">
           <img src="${imageData.src}" alt="${imageData.name}" 
-               class="w-full h-full object-cover transition-all duration-300 group-hover:scale-105" 
+               class="w-full h-full object-cover transition-all duration-500 group-hover:scale-110" 
                loading="lazy">
           
-          <!-- Processing Status Overlay -->
+          <!-- Professional Status Badge -->
           ${imageData.processed ? `
-            <div class="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-              ${imageData.processedFormat ? imageData.processedFormat.toUpperCase() : 'Feldolgozott'}
+            <div class="absolute top-3 right-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm border border-white/20 shadow-lg">
+              ✓ ${imageData.processedFormat ? imageData.processedFormat.toUpperCase() : 'PROCESSED'}
             </div>
-          ` : ''}
+          ` : `
+            <div class="absolute top-3 right-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm border border-white/20 shadow-lg">
+              📁 ORIGINAL
+            </div>
+          `}
           
           <!-- Quick Format Conversion Overlay -->
           <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -691,8 +695,8 @@ class ImageFlowApp {
           </div>
         </div>
         
-        <div class="p-4 relative z-10">
-          <h3 class="font-semibold truncate mb-3 text-neutral-900 dark:text-neutral-100" title="${imageData.name}">
+        <div class="p-5 relative z-10 bg-gradient-to-br from-white/90 to-white/70 dark:from-neutral-800/90 dark:to-neutral-900/70 backdrop-blur-sm">
+          <h3 class="font-bold truncate mb-3 text-neutral-900 dark:text-white text-lg" title="${imageData.name}">
             ${imageData.name}
           </h3>
           
