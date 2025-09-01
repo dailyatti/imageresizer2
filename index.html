@@ -21,15 +21,15 @@
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="ImageFlow Pro - Professional Image Processing SaaS">
   <meta property="og:description" content="Advanced image processing with wireless file sharing and lossless quality conversion">
-  <meta property="og:image" content="https://imageflow-pro.netlify.app/og-image.png">
-  <meta property="og:url" content="https://imageflow-pro.netlify.app">
+  <meta property="og:image" content="https://imageresizer2.netlify.app/icon-192x192.png">
+  <meta property="og:url" content="https://imageresizer2.netlify.app">
   <meta property="og:type" content="website">
   
   <!-- Twitter Card Meta Tags -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="ImageFlow Pro - Professional Image Processing SaaS">
   <meta name="twitter:description" content="Advanced image processing with wireless file sharing and lossless quality conversion">
-  <meta name="twitter:image" content="https://imageflow-pro.netlify.app/og-image.png">
+  <meta name="twitter:image" content="https://imageresizer2.netlify.app/icon-192x192.png">
   
   <!-- External Libraries from CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -382,6 +382,19 @@
       background: var(--gradient-danger);
       color: white;
       box-shadow: var(--shadow-md);
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, hsl(var(--hue-warning), 85%, 60%), hsl(var(--hue-warning), 85%, 50%));
+      color: var(--neutral-0);
+      box-shadow: var(--shadow-md);
+      border: 1px solid hsl(var(--hue-warning), 85%, 45%);
+    }
+    
+    .btn-warning:hover {
+      background: linear-gradient(135deg, hsl(var(--hue-warning), 85%, 65%), hsl(var(--hue-warning), 85%, 55%));
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
     }
     
     /* Button Sizes */
@@ -939,13 +952,19 @@
                 </svg>
                 Képek feltöltése
               </h2>
-              <div id="dropZone" class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 text-center cursor-pointer transition-all duration-300 hover:border-blue-400">
+              <div id="dropZone" class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 text-center cursor-pointer transition-all duration-300 hover:border-blue-400" 
+                   role="button" 
+                   aria-label="Képfájlok feltöltési terület. Kattintson vagy húzzon ide fájlokat." 
+                   tabindex="0"
+                   aria-describedby="dropZoneHelp">
                 <svg class="mx-auto h-12 w-12 text-slate-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                   <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
                 <p class="text-lg font-semibold text-slate-600 dark:text-slate-400">Húzza ide a képeket</p>
-                <p class="text-sm text-slate-500 mt-2">vagy kattintson a tallózáshoz</p>
-                <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+                <p class="text-sm text-slate-500 mt-2" id="dropZoneHelp">vagy kattintson a tallózáshoz</p>
+                <input type="file" id="fileInput" multiple accept="image/*" class="hidden" 
+                       aria-label="Válasszon képfájlokat feltöltéshez" 
+                       aria-describedby="dropZone">
               </div>
             </div>
 

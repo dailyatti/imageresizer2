@@ -26,7 +26,19 @@ class ImageFlowApp {
       preserveMetadata: true,
       enableSharpening: false,
       gammaCorrection: 2.2,
-      resamplingQuality: 'maximum'
+      resamplingQuality: 'maximum',
+      enableCropping: true,
+      cropAspectRatio: 'free' // free, 1:1, 4:3, 16:9, 3:2, custom
+    };
+    
+    // Crop state management
+    this.cropState = {
+      active: false,
+      imageId: null,
+      cropArea: { x: 0, y: 0, width: 0, height: 0 },
+      aspectRatio: null,
+      canvas: null,
+      ctx: null
     };
     
     // Professional Format Support with Lossless Options
@@ -676,7 +688,7 @@ class ImageFlowApp {
           </div>
           
           <!-- Action Buttons -->
-          <div class="grid grid-cols-2 gap-2 mt-4">
+          <div class="grid grid-cols-3 gap-2 mt-4">
             <button onclick="app.downloadOriginal('${imageData.id}')" 
                     class="btn btn-secondary btn-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -684,6 +696,17 @@ class ImageFlowApp {
                       d="M12 10v6m0 0l-3-3m3 3l3-3M9 5l3 3 3-3M21 21H3" />
               </svg>
               Eredeti
+            </button>
+            
+            <button onclick="app.initializeCropMode('${imageData.id}')" 
+                    class="btn btn-warning btn-sm" title="Professzionális képvágás">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M4 7v10c0 2.21 3.79 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.79 4 8 4s8-1.79 8-4M4 7c0-2.21 3.79-4 8-4s8 1.79 8 4" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M6 10l6 6 6-6" />
+              </svg>
+              Vágás
             </button>
             
             ${imageData.processed ? `
@@ -702,7 +725,7 @@ class ImageFlowApp {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                Feldolgoz
+                Átméretez
               </button>
             `}
           </div>
@@ -988,6 +1011,12 @@ class ImageFlowApp {
   }
 
   async resizeWithAdvancedAlgorithm(sourceImg, targetCanvas, algorithm = 'lanczos') {
+    // Check if Pica is available
+    if (!window.pica) {
+      console.warn('Pica.js not available, falling back to canvas resize');
+      return this.fallbackCanvasResize(sourceImg, targetCanvas);
+    }
+    
     const pica = window.pica();
     
     // Create source canvas
@@ -1039,6 +1068,14 @@ class ImageFlowApp {
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(sourceCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
     }
+  }
+
+  fallbackCanvasResize(sourceImg, targetCanvas) {
+    const ctx = targetCanvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(sourceImg, 0, 0, targetCanvas.width, targetCanvas.height);
+    return Promise.resolve();
   }
 
   async applyFormatOptimization(canvas, format, quality = 1) {
@@ -1138,6 +1175,580 @@ class ImageFlowApp {
     } catch (error) {
       console.error('Format conversion failed:', error);
       this.showNotification('Formátum konverzió sikertelen!', 'error');
+    }
+  }
+
+  // Professional Crop Functionality
+  initializeCropMode(imageId) {
+    const image = this.images.find(img => img.id == imageId);
+    if (!image) return;
+    
+    this.cropState.active = true;
+    this.cropState.imageId = imageId;
+    
+    // Create crop overlay UI
+    this.createCropOverlay(image);
+    this.showNotification('Vágási mód aktiválva. Jelölje ki a területet.', 'info');
+  }
+  
+  createCropOverlay(image) {
+    // Remove existing crop overlay
+    const existingOverlay = document.getElementById('cropOverlay');
+    if (existingOverlay) {
+      existingOverlay.remove();
+    }
+    
+    // Create crop overlay container
+    const overlay = document.createElement('div');
+    overlay.id = 'cropOverlay';
+    overlay.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center';
+    overlay.innerHTML = `
+      <div class="bg-white rounded-lg p-6 max-w-4xl max-h-full overflow-auto">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-gray-800">Professzionális Képvágás</h3>
+          <button onclick="app.closeCropMode()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Crop Controls -->
+        <div class="mb-4 flex flex-wrap gap-4">
+          <div class="flex items-center space-x-2">
+            <label class="text-sm font-medium text-gray-700">Képarány:</label>
+            <select id="cropAspectRatio" onchange="app.setCropAspectRatio(this.value)" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+              <option value="free">Szabad</option>
+              <option value="1:1">1:1 (Négyzet)</option>
+              <option value="4:3">4:3 (Hagyományos)</option>
+              <option value="16:9">16:9 (Szélesvásznú)</option>
+              <option value="3:2">3:2 (Fotó)</option>
+              <option value="21:9">21:9 (Ultra-wide)</option>
+            </select>
+          </div>
+          
+          <div class="flex items-center space-x-2">
+            <label class="text-sm font-medium text-gray-700">Algoritmus:</label>
+            <select id="cropAlgorithm" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+              <option value="lanczos">Lanczos3 (Legjobb)</option>
+              <option value="bicubic">Bicubic (Gyors)</option>
+              <option value="bilinear">Bilinear (Alapértelmezett)</option>
+              <option value="nearest">Nearest (Pixel art)</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Crop Canvas Container -->
+        <div class="relative bg-gray-100 rounded-lg overflow-hidden" style="max-width: 800px; max-height: 600px;">
+          <canvas id="cropCanvas" class="block mx-auto cursor-crosshair"></canvas>
+          <div id="cropSelection" class="absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 pointer-events-none" style="display: none;"></div>
+          
+          <!-- Crop handles -->
+          <div id="cropHandles" class="absolute pointer-events-none" style="display: none;">
+            <div class="absolute w-3 h-3 bg-blue-500 border border-white -translate-x-1/2 -translate-y-1/2 cursor-nw-resize" data-handle="nw"></div>
+            <div class="absolute w-3 h-3 bg-blue-500 border border-white -translate-x-1/2 -translate-y-1/2 cursor-n-resize" data-handle="n"></div>
+            <div class="absolute w-3 h-3 bg-blue-500 border border-white -translate-x-1/2 -translate-y-1/2 cursor-ne-resize" data-handle="ne"></div>
+            <div class="absolute w-3 h-3 bg-blue-500 border border-white -translate-x-1/2 -translate-y-1/2 cursor-e-resize" data-handle="e"></div>
+            <div class="absolute w-3 h-3 bg-blue-500 border border-white -translate-x-1/2 -translate-y-1/2 cursor-se-resize" data-handle="se"></div>
+            <div class="absolute w-3 h-3 bg-blue-500 border border-white -translate-x-1/2 -translate-y-1/2 cursor-s-resize" data-handle="s"></div>
+            <div class="absolute w-3 h-3 bg-blue-500 border border-white -translate-x-1/2 -translate-y-1/2 cursor-sw-resize" data-handle="sw"></div>
+            <div class="absolute w-3 h-3 bg-blue-500 border border-white -translate-x-1/2 -translate-y-1/2 cursor-w-resize" data-handle="w"></div>
+          </div>
+        </div>
+        
+        <!-- Crop dimensions display -->
+        <div class="mt-4 text-sm text-gray-600">
+          <span>Kiválasztott terület: <span id="cropDimensions">0 × 0 px</span></span>
+          <span class="ml-4">Eredeti: ${image.width} × ${image.height} px</span>
+        </div>
+        
+        <!-- Action buttons -->
+        <div class="mt-6 flex justify-end space-x-3">
+          <button onclick="app.resetCropSelection()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+            Visszaállítás
+          </button>
+          <button onclick="app.closeCropMode()" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">
+            Mégse
+          </button>
+          <button onclick="app.applyCropAndDownload()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
+            Kivágás és Letöltés
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Initialize crop canvas
+    this.setupCropCanvas(image);
+  }
+  
+  setupCropCanvas(image) {
+    const canvas = document.getElementById('cropCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Calculate canvas size maintaining aspect ratio
+    const maxWidth = 800;
+    const maxHeight = 600;
+    
+    let canvasWidth = image.width;
+    let canvasHeight = image.height;
+    
+    if (canvasWidth > maxWidth || canvasHeight > maxHeight) {
+      const scale = Math.min(maxWidth / canvasWidth, maxHeight / canvasHeight);
+      canvasWidth = Math.round(canvasWidth * scale);
+      canvasHeight = Math.round(canvasHeight * scale);
+    }
+    
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    canvas.style.maxWidth = '100%';
+    canvas.style.height = 'auto';
+    
+    // Store scale factor for coordinate conversion
+    this.cropState.scale = canvasWidth / image.width;
+    
+    // Load and draw image
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+      this.setupCropInteraction(canvas);
+    };
+    img.src = image.src;
+    
+    this.cropState.canvas = canvas;
+    this.cropState.ctx = ctx;
+  }
+  
+  setupCropInteraction(canvas) {
+    let isSelecting = false;
+    let isDragging = false;
+    let isResizing = false;
+    let startX, startY, currentHandle;
+    
+    const selection = document.getElementById('cropSelection');
+    const handles = document.getElementById('cropHandles');
+    const dimensionsDisplay = document.getElementById('cropDimensions');
+    
+    // Mouse events for crop selection
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Check if clicking on a handle
+      const handle = this.getHandleAtPosition(x, y);
+      if (handle) {
+        isResizing = true;
+        currentHandle = handle;
+        return;
+      }
+      
+      // Check if clicking inside selection for dragging
+      if (this.isPointInSelection(x, y)) {
+        isDragging = true;
+        startX = x - this.cropState.cropArea.x;
+        startY = y - this.cropState.cropArea.y;
+        return;
+      }
+      
+      // Start new selection
+      isSelecting = true;
+      startX = x;
+      startY = y;
+      
+      this.cropState.cropArea = { x, y, width: 0, height: 0 };
+      this.updateCropSelection();
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      if (isSelecting) {
+        const width = x - startX;
+        const height = y - startY;
+        
+        this.cropState.cropArea = {
+          x: width > 0 ? startX : x,
+          y: height > 0 ? startY : y,
+          width: Math.abs(width),
+          height: Math.abs(height)
+        };
+        
+        this.constrainToAspectRatio();
+        this.updateCropSelection();
+      } else if (isDragging) {
+        const newX = Math.max(0, Math.min(canvas.width - this.cropState.cropArea.width, x - startX));
+        const newY = Math.max(0, Math.min(canvas.height - this.cropState.cropArea.height, y - startY));
+        
+        this.cropState.cropArea.x = newX;
+        this.cropState.cropArea.y = newY;
+        this.updateCropSelection();
+      } else if (isResizing) {
+        this.handleResize(x, y, currentHandle);
+        this.constrainToAspectRatio();
+        this.updateCropSelection();
+      }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+      isSelecting = false;
+      isDragging = false;
+      isResizing = false;
+      currentHandle = null;
+    });
+    
+    // Handle clicks for repositioning handles
+    handles.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      const handle = e.target.dataset.handle;
+      if (handle) {
+        isResizing = true;
+        currentHandle = handle;
+      }
+    });
+  }
+  
+  constrainToAspectRatio() {
+    const aspectRatio = document.getElementById('cropAspectRatio').value;
+    if (aspectRatio === 'free') return;
+    
+    const ratios = {
+      '1:1': 1,
+      '4:3': 4/3,
+      '16:9': 16/9,
+      '3:2': 3/2,
+      '21:9': 21/9
+    };
+    
+    const ratio = ratios[aspectRatio];
+    if (!ratio) return;
+    
+    const area = this.cropState.cropArea;
+    const currentRatio = area.width / area.height;
+    
+    if (currentRatio > ratio) {
+      // Too wide, adjust width
+      area.width = area.height * ratio;
+    } else {
+      // Too tall, adjust height
+      area.height = area.width / ratio;
+    }
+    
+    // Ensure selection stays within canvas bounds
+    const canvas = this.cropState.canvas;
+    if (area.x + area.width > canvas.width) {
+      area.x = canvas.width - area.width;
+    }
+    if (area.y + area.height > canvas.height) {
+      area.y = canvas.height - area.height;
+    }
+  }
+  
+  updateCropSelection() {
+    const selection = document.getElementById('cropSelection');
+    const handles = document.getElementById('cropHandles');
+    const dimensionsDisplay = document.getElementById('cropDimensions');
+    
+    const area = this.cropState.cropArea;
+    
+    if (area.width > 0 && area.height > 0) {
+      selection.style.display = 'block';
+      selection.style.left = area.x + 'px';
+      selection.style.top = area.y + 'px';
+      selection.style.width = area.width + 'px';
+      selection.style.height = area.height + 'px';
+      
+      // Update handles
+      handles.style.display = 'block';
+      this.updateHandlePositions();
+      
+      // Update dimensions display (convert back to original image coordinates)
+      const originalWidth = Math.round(area.width / this.cropState.scale);
+      const originalHeight = Math.round(area.height / this.cropState.scale);
+      dimensionsDisplay.textContent = `${originalWidth} × ${originalHeight} px`;
+    } else {
+      selection.style.display = 'none';
+      handles.style.display = 'none';
+      dimensionsDisplay.textContent = '0 × 0 px';
+    }
+  }
+  
+  updateHandlePositions() {
+    const handles = document.getElementById('cropHandles').children;
+    const area = this.cropState.cropArea;
+    
+    // Position handles around the selection
+    handles[0].style.left = area.x + 'px'; // nw
+    handles[0].style.top = area.y + 'px';
+    
+    handles[1].style.left = (area.x + area.width / 2) + 'px'; // n
+    handles[1].style.top = area.y + 'px';
+    
+    handles[2].style.left = (area.x + area.width) + 'px'; // ne
+    handles[2].style.top = area.y + 'px';
+    
+    handles[3].style.left = (area.x + area.width) + 'px'; // e
+    handles[3].style.top = (area.y + area.height / 2) + 'px';
+    
+    handles[4].style.left = (area.x + area.width) + 'px'; // se
+    handles[4].style.top = (area.y + area.height) + 'px';
+    
+    handles[5].style.left = (area.x + area.width / 2) + 'px'; // s
+    handles[5].style.top = (area.y + area.height) + 'px';
+    
+    handles[6].style.left = area.x + 'px'; // sw
+    handles[6].style.top = (area.y + area.height) + 'px';
+    
+    handles[7].style.left = area.x + 'px'; // w
+    handles[7].style.top = (area.y + area.height / 2) + 'px';
+  }
+  
+  setCropAspectRatio(ratio) {
+    this.processingOptions.cropAspectRatio = ratio;
+    if (this.cropState.cropArea.width > 0 && this.cropState.cropArea.height > 0) {
+      this.constrainToAspectRatio();
+      this.updateCropSelection();
+    }
+  }
+  
+  resetCropSelection() {
+    this.cropState.cropArea = { x: 0, y: 0, width: 0, height: 0 };
+    this.updateCropSelection();
+  }
+  
+  closeCropMode() {
+    const overlay = document.getElementById('cropOverlay');
+    if (overlay) {
+      overlay.remove();
+    }
+    this.cropState.active = false;
+    this.cropState.imageId = null;
+  }
+  
+  async applyCropAndDownload() {
+    if (!this.cropState.cropArea.width || !this.cropState.cropArea.height) {
+      this.showNotification('Kérjük, jelöljön ki egy területet a vágáshoz!', 'warning');
+      return;
+    }
+    
+    try {
+      const image = this.images.find(img => img.id == this.cropState.imageId);
+      if (!image) return;
+      
+      // Convert canvas coordinates back to original image coordinates
+      const scale = this.cropState.scale;
+      const cropArea = {
+        x: Math.round(this.cropState.cropArea.x / scale),
+        y: Math.round(this.cropState.cropArea.y / scale),
+        width: Math.round(this.cropState.cropArea.width / scale),
+        height: Math.round(this.cropState.cropArea.height / scale)
+      };
+      
+      // Get selected algorithm
+      const algorithm = document.getElementById('cropAlgorithm').value;
+      
+      // Process cropped image with lossless quality
+      const croppedImageData = await this.processCroppedImage(image, cropArea, algorithm);
+      
+      // Download the cropped image
+      this.downloadProcessedImage(croppedImageData, `cropped_${image.name}`);
+      
+      this.showNotification('Kivágott kép sikeresen letöltve!', 'success');
+      this.closeCropMode();
+      
+    } catch (error) {
+      console.error('Crop and download failed:', error);
+      this.showNotification('Vágás és letöltés sikertelen!', 'error');
+    }
+  }
+  
+  async processCroppedImage(image, cropArea, algorithm = 'lanczos') {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = async () => {
+        try {
+          // Create source canvas with full image
+          const sourceCanvas = document.createElement('canvas');
+          const sourceCtx = sourceCanvas.getContext('2d');
+          sourceCanvas.width = img.naturalWidth;
+          sourceCanvas.height = img.naturalHeight;
+          
+          sourceCtx.imageSmoothingEnabled = true;
+          sourceCtx.imageSmoothingQuality = 'high';
+          sourceCtx.drawImage(img, 0, 0);
+          
+          // Create target canvas for cropped area
+          const targetCanvas = document.createElement('canvas');
+          const targetCtx = targetCanvas.getContext('2d');
+          targetCanvas.width = cropArea.width;
+          targetCanvas.height = cropArea.height;
+          
+          // Extract cropped portion using high-quality algorithms
+          if (window.pica && algorithm === 'lanczos') {
+            // Use Pica for highest quality cropping
+            const pica = window.pica();
+            
+            // Create intermediate canvas with crop area
+            const cropCanvas = document.createElement('canvas');
+            const cropCtx = cropCanvas.getContext('2d');
+            cropCanvas.width = cropArea.width;
+            cropCanvas.height = cropArea.height;
+            
+            // Extract the crop area
+            const imageData = sourceCtx.getImageData(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
+            cropCtx.putImageData(imageData, 0, 0);
+            
+            // Use Pica for any additional processing if needed
+            await pica.resize(cropCanvas, targetCanvas, {
+              quality: 3,
+              alpha: true,
+              filter: 'lanczos3'
+            });
+          } else {
+            // Direct high-quality crop
+            targetCtx.imageSmoothingEnabled = true;
+            targetCtx.imageSmoothingQuality = 'high';
+            
+            targetCtx.drawImage(
+              sourceCanvas,
+              cropArea.x, cropArea.y, cropArea.width, cropArea.height,
+              0, 0, cropArea.width, cropArea.height
+            );
+          }
+          
+          // Convert to high-quality PNG (lossless)
+          const dataUrl = targetCanvas.toDataURL('image/png');
+          
+          resolve({
+            dataUrl: dataUrl,
+            width: cropArea.width,
+            height: cropArea.height,
+            format: 'png'
+          });
+          
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      img.onerror = () => reject(new Error('Failed to load image for cropping'));
+      img.src = image.src;
+    });
+  }
+  
+  downloadProcessedImage(imageData, filename) {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = imageData.dataUrl;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+  
+  // Helper methods for crop interaction
+  getHandleAtPosition(x, y) {
+    const handles = document.getElementById('cropHandles');
+    if (!handles || handles.style.display === 'none') return null;
+    
+    const handleElements = handles.children;
+    const tolerance = 8; // pixels
+    
+    for (let i = 0; i < handleElements.length; i++) {
+      const handle = handleElements[i];
+      const handleX = parseFloat(handle.style.left);
+      const handleY = parseFloat(handle.style.top);
+      
+      if (Math.abs(x - handleX) < tolerance && Math.abs(y - handleY) < tolerance) {
+        return handle.dataset.handle;
+      }
+    }
+    
+    return null;
+  }
+  
+  isPointInSelection(x, y) {
+    const area = this.cropState.cropArea;
+    return x >= area.x && x <= area.x + area.width && 
+           y >= area.y && y <= area.y + area.height;
+  }
+  
+  handleResize(x, y, handle) {
+    const area = this.cropState.cropArea;
+    const canvas = this.cropState.canvas;
+    
+    switch (handle) {
+      case 'nw':
+        const newWidth = area.x + area.width - x;
+        const newHeight = area.y + area.height - y;
+        if (newWidth > 0 && newHeight > 0 && x >= 0 && y >= 0) {
+          area.width = newWidth;
+          area.height = newHeight;
+          area.x = x;
+          area.y = y;
+        }
+        break;
+        
+      case 'ne':
+        const neWidth = x - area.x;
+        const neHeight = area.y + area.height - y;
+        if (neWidth > 0 && neHeight > 0 && x <= canvas.width && y >= 0) {
+          area.width = neWidth;
+          area.height = neHeight;
+          area.y = y;
+        }
+        break;
+        
+      case 'se':
+        if (x >= area.x && y >= area.y && x <= canvas.width && y <= canvas.height) {
+          area.width = x - area.x;
+          area.height = y - area.y;
+        }
+        break;
+        
+      case 'sw':
+        const swWidth = area.x + area.width - x;
+        const swHeight = y - area.y;
+        if (swWidth > 0 && swHeight > 0 && x >= 0 && y <= canvas.height) {
+          area.width = swWidth;
+          area.height = swHeight;
+          area.x = x;
+        }
+        break;
+        
+      case 'n':
+        const nHeight = area.y + area.height - y;
+        if (nHeight > 0 && y >= 0) {
+          area.height = nHeight;
+          area.y = y;
+        }
+        break;
+        
+      case 'e':
+        if (x >= area.x && x <= canvas.width) {
+          area.width = x - area.x;
+        }
+        break;
+        
+      case 's':
+        if (y >= area.y && y <= canvas.height) {
+          area.height = y - area.y;
+        }
+        break;
+        
+      case 'w':
+        const wWidth = area.x + area.width - x;
+        if (wWidth > 0 && x >= 0) {
+          area.width = wWidth;
+          area.x = x;
+        }
+        break;
     }
   }
 

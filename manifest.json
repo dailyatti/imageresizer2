@@ -3,7 +3,6 @@
   "short_name": "ImageFlow Pro",
   "description": "Advanced image processing with wireless file sharing, QR code pairing, and lossless quality conversion",
   "version": "1.0.0",
-  "manifest_version": 3,
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

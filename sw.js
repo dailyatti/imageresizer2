@@ -289,7 +289,7 @@ self.addEventListener('notificationclick', (event) => {
   
   if (event.action === 'open') {
     event.waitUntil(
-      clients.openWindow('/imageflow_pro_saas.html')
+      clients.openWindow('/')
     );
   } else if (event.action === 'dismiss') {
     // Just close the notification
@@ -297,7 +297,7 @@ self.addEventListener('notificationclick', (event) => {
   } else {
     // Default action - open app
     event.waitUntil(
-      clients.openWindow('/imageflow_pro_saas.html')
+      clients.openWindow('/')
     );
   }
 });
