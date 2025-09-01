@@ -250,6 +250,31 @@
       background: var(--neutral-900);
     }
     
+    /* Dark Mode Text Fixes */
+    .dark .text-slate-600,
+    .dark .text-slate-400 {
+      color: var(--neutral-300) !important;
+    }
+    
+    .dark .text-slate-800 {
+      color: var(--neutral-200) !important;
+    }
+    
+    .dark .text-gray-800,
+    .dark .text-gray-700,
+    .dark .text-gray-600 {
+      color: var(--neutral-200) !important;
+    }
+    
+    .dark .bg-white {
+      background: var(--neutral-800) !important;
+    }
+    
+    .dark .border-slate-300,
+    .dark .border-gray-300 {
+      border-color: var(--neutral-600) !important;
+    }
+    
     /* Professional Glass Morphism System */
     .glass-effect {
       background: hsla(0, 0%, 100%, 0.08);
@@ -968,40 +993,97 @@
               </div>
             </div>
 
-            <!-- Quick Processing -->
+            <!-- Batch Processing Controls -->
             <div class="glass-effect rounded-2xl p-6 hover-lift">
               <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
-                Gyors Feldolgozás
+                Professzionális Tömeges Feldolgozás
               </h2>
               
-              <div class="space-y-4">
-                <div class="grid grid-cols-3 gap-2">
-                  <button class="quick-preset px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg text-sm hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors" data-preset="thumbnail">
-                    📱 Thumbnail
-                  </button>
-                  <button class="quick-preset px-3 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg text-sm hover:bg-green-200 dark:hover:bg-green-800 transition-colors" data-preset="social">
-                    📸 Social
-                  </button>
-                  <button class="quick-preset px-3 py-2 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-lg text-sm hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors" data-preset="web">
-                    🌐 Web
-                  </button>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <!-- Batch Resize Controls -->
+                <div class="space-y-2">
+                  <label class="block text-sm font-semibold text-neutral-700 dark:text-neutral-300">Átméretezés</label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="batchWidth" placeholder="Szélesség" 
+                           class="px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">
+                    <input type="number" id="batchHeight" placeholder="Magasság"
+                           class="px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">
+                  </div>
                 </div>
                 
-                <div class="border-t border-slate-200 dark:border-slate-700 pt-4">
-                  <label class="block text-sm font-medium mb-2">Cél formátum</label>
-                  <select id="quickFormat" class="w-full px-3 py-2 bg-white/70 dark:bg-slate-800/70 border border-slate-300 dark:border-slate-600 rounded-lg">
-                    <option value="webp">WebP (Optimális)</option>
-                    <option value="jpg">JPG (Kisebb méret)</option>
-                    <option value="png">PNG (Átlátszóság)</option>
-                    <option value="avif">AVIF (Jövő)</option>
+                <!-- Format Selection -->
+                <div class="space-y-2">
+                  <label class="block text-sm font-semibold text-neutral-700 dark:text-neutral-300">Formátum & Algoritmus</label>
+                  <select id="batchFormat" class="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">
+                    <option value="png">PNG (Veszteségmentes)</option>
+                    <option value="webp">WebP (Veszteségmentes)</option>
+                    <option value="jpg">JPG (Magas minőség)</option>
+                    <option value="avif">AVIF (Modern)</option>
+                  </select>
+                  <select id="batchAlgorithm" class="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">
+                    <option value="lanczos">Lanczos3 (Legjobb minőség)</option>
+                    <option value="bicubic">Bicubic (Professzionális)</option>
+                    <option value="bilinear">Bilinear (Gyors)</option>
+                    <option value="nearest">Nearest (Pixel art)</option>
                   </select>
                 </div>
                 
-                <button id="quickProcess" class="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-semibold shadow-lg transform hover:scale-105">
-                  ⚡ Gyors Feldolgozás
+                <!-- Quick Presets -->
+                <div class="space-y-2">
+                  <label class="block text-sm font-semibold text-neutral-700 dark:text-neutral-300">Gyors Beállítások</label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button class="quick-preset px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg text-sm hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors" data-preset="thumbnail">
+                      📱 Thumbnail<br><span class="text-xs opacity-75">300x300</span>
+                    </button>
+                    <button class="quick-preset px-3 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg text-sm hover:bg-green-200 dark:hover:bg-green-800 transition-colors" data-preset="social">
+                      📸 Social<br><span class="text-xs opacity-75">1080x1080</span>
+                    </button>
+                    <button class="quick-preset px-3 py-2 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-lg text-sm hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors" data-preset="web">
+                      🌐 Web<br><span class="text-xs opacity-75">1920x1080</span>
+                    </button>
+                    <button class="quick-preset px-3 py-2 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-lg text-sm hover:bg-orange-200 dark:hover:bg-orange-800 transition-colors" data-preset="hd">
+                      🎥 HD<br><span class="text-xs opacity-75">1280x720</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <button id="batchResize" onclick="app.batchResize()" 
+                        class="px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 font-semibold shadow-lg transform hover:scale-105 flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Átméretezés
+                </button>
+                
+                <button id="batchConvert" onclick="app.batchConvert()" 
+                        class="px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 font-semibold shadow-lg transform hover:scale-105 flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Formátum Váltás
+                </button>
+                
+                <button id="batchBlur" onclick="app.batchApplyBlur()" 
+                        class="px-4 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg hover:from-orange-700 hover:to-orange-800 transition-all duration-300 font-semibold shadow-lg transform hover:scale-105 flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Homályosítás
+                </button>
+                
+                <button id="batchDownloadZip" onclick="app.batchDownloadZip()" 
+                        class="px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 font-semibold shadow-lg transform hover:scale-105 flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                  </svg>
+                  ZIP Letöltés
                 </button>
               </div>
             </div>
@@ -1018,12 +1100,21 @@
               
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm font-medium mb-2">Minőség (%)</label>
-                  <input type="range" id="qualitySlider" min="10" max="100" value="90" class="w-full">
+                  <label class="block text-sm font-medium mb-2">Homályosítás Funkció</label>
+                  <input type="range" id="blurSlider" min="0" max="20" value="0" step="0.5" class="w-full">
                   <div class="flex justify-between text-xs text-slate-500 mt-1">
-                    <span>10%</span>
-                    <span id="qualityValue">90%</span>
-                    <span>100%</span>
+                    <span>Éles</span>
+                    <span id="blurValue">0px</span>
+                    <span>Homályos</span>
+                  </div>
+                  <div class="mt-2">
+                    <select id="blurType" class="w-full px-2 py-1 text-sm border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">
+                      <option value="all">Teljes kép</option>
+                      <option value="top">Felső rész (33%)</option>
+                      <option value="bottom">Alsó rész (33%)</option>
+                      <option value="center">Középső rész (33%)</option>
+                      <option value="edges">Szélső részek</option>
+                    </select>
                   </div>
                 </div>
                 

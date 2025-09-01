@@ -115,15 +115,17 @@ class ImageFlowApp {
 
     // Quick presets
     document.querySelectorAll('.quick-preset').forEach(btn => {
-      btn.addEventListener('click', (e) => this.applyPreset(e.target.dataset.preset));
+      btn.addEventListener('click', (e) => this.applyBatchPreset(e.target.dataset.preset));
     });
 
-    // Quality slider
-    const qualitySlider = document.getElementById('qualitySlider');
-    const qualityValue = document.getElementById('qualityValue');
-    qualitySlider.addEventListener('input', (e) => {
-      qualityValue.textContent = `${e.target.value}%`;
-    });
+    // Blur slider
+    const blurSlider = document.getElementById('blurSlider');
+    const blurValue = document.getElementById('blurValue');
+    if (blurSlider && blurValue) {
+      blurSlider.addEventListener('input', (e) => {
+        blurValue.textContent = `${e.target.value}px`;
+      });
+    }
 
     // Device connection
     document.getElementById('connectDevice').addEventListener('click', this.showDevicesTab.bind(this));
@@ -217,22 +219,64 @@ class ImageFlowApp {
     }
     
     const qrContainer = document.getElementById('qrCode');
+    if (!qrContainer) {
+      console.warn('QR container not found, retrying...');
+      setTimeout(() => this.generateQRCode(), 500);
+      return;
+    }
+    
     const connectionUrl = `${window.location.origin}?connect=${this.peer.id}`;
     
     try {
-      qrContainer.innerHTML = '';
+      // Check if QRCode library is available
+      if (!window.QRCode) {
+        console.error('QRCode library not loaded');
+        qrContainer.innerHTML = `
+          <div class="text-center p-4 bg-red-100 rounded-lg">
+            <p class="text-red-600 mb-2">QR kód library nem elérhető</p>
+            <p class="text-sm text-red-500">Kapcsolódási URL: ${connectionUrl}</p>
+          </div>
+        `;
+        return;
+      }
+      
+      qrContainer.innerHTML = '<div class="text-center">QR kód generálása...</div>';
+      
       const canvas = await QRCode.toCanvas(connectionUrl, {
         width: 200,
         margin: 2,
         color: {
           dark: '#667eea',
           light: '#ffffff'
-        }
+        },
+        errorCorrectionLevel: 'M'
       });
+      
+      qrContainer.innerHTML = '';
       qrContainer.appendChild(canvas);
+      
+      // Add connection info below QR code
+      const info = document.createElement('div');
+      info.className = 'mt-3 text-center text-sm text-neutral-600 dark:text-neutral-400';
+      info.innerHTML = `
+        <p><strong>Eszköz ID:</strong> ${this.peer.id}</p>
+        <p class="text-xs mt-1 break-all">${connectionUrl}</p>
+      `;
+      qrContainer.appendChild(info);
+      
+      console.log('QR Code generated successfully for:', connectionUrl);
+      
     } catch (error) {
       console.error('QR Code generation failed:', error);
-      qrContainer.innerHTML = '<p class="text-red-500">QR kód generálása sikertelen</p>';
+      qrContainer.innerHTML = `
+        <div class="text-center p-4 bg-red-100 dark:bg-red-900 rounded-lg">
+          <p class="text-red-600 dark:text-red-400 mb-2">QR kód generálása sikertelen</p>
+          <p class="text-sm text-red-500 dark:text-red-300">Hiba: ${error.message}</p>
+          <button onclick="app.generateQRCode()" class="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">
+            Újrapróbálás
+          </button>
+        </div>
+      `;
     }
   }
 
@@ -730,8 +774,67 @@ class ImageFlowApp {
             `}
           </div>
           
-          <!-- Advanced Options -->
+          <!-- Individual Image Controls -->
           <div class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700">
+            <!-- Individual Resize Controls -->
+            <div class="mb-3">
+              <h4 class="text-sm font-semibold mb-2 text-neutral-700 dark:text-neutral-300">Egyedi Átméretezés</h4>
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label class="text-xs text-neutral-600 dark:text-neutral-400">Szélesség</label>
+                  <input type="number" id="width_${imageData.id}" placeholder="Auto" 
+                         class="w-full px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">
+                </div>
+                <div>
+                  <label class="text-xs text-neutral-600 dark:text-neutral-400">Magasság</label>
+                  <input type="number" id="height_${imageData.id}" placeholder="Auto"
+                         class="w-full px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label class="text-xs text-neutral-600 dark:text-neutral-400">Formátum</label>
+                  <select id="format_${imageData.id}" class="w-full px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">
+                    <option value="png">PNG (Veszteségmentes)</option>
+                    <option value="webp">WebP (Veszteségmentes)</option>
+                    <option value="jpg">JPG (Magas minőség)</option>
+                    <option value="avif">AVIF (Modern)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs text-neutral-600 dark:text-neutral-400">Algoritmus</label>
+                  <select id="algorithm_${imageData.id}" class="w-full px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">
+                    <option value="lanczos">Lanczos3 (Legjobb)</option>
+                    <option value="bicubic">Bicubic (Professzionális)</option>
+                    <option value="bilinear">Bilinear (Gyors)</option>
+                    <option value="nearest">Nearest (Pixel art)</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="app.processIndividualImage('${imageData.id}')" 
+                        class="btn btn-primary btn-sm text-xs">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Feldolgoz & Letölt
+                </button>
+                
+                <button onclick="app.convertIndividualFormat('${imageData.id}')" 
+                        class="btn btn-secondary btn-sm text-xs">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Csak Konvertál
+                </button>
+              </div>
+            </div>
+            
+            <!-- Bottom Row -->
             <div class="flex justify-between items-center">
               <button onclick="app.removeImage('${imageData.id}')" 
                       class="btn btn-danger btn-sm text-xs">
@@ -748,7 +851,7 @@ class ImageFlowApp {
                 </span>
                 ${imageData.processed ? `
                   <span class="text-xs px-2 py-1 bg-green-100 dark:bg-green-900 rounded-full text-green-600 dark:text-green-400">
-                    Veszteségmentes
+                    Feldolgozva
                   </span>
                 ` : ''}
               </div>
@@ -759,6 +862,173 @@ class ImageFlowApp {
     `;
   }
 
+  // Batch processing functions
+  async batchResize() {
+    if (this.images.length === 0) {
+      this.showNotification('Nincs feltöltött kép a feldolgozáshoz!', 'warning');
+      return;
+    }
+    
+    const width = document.getElementById('batchWidth').value || null;
+    const height = document.getElementById('batchHeight').value || null;
+    const format = document.getElementById('batchFormat').value;
+    const algorithm = document.getElementById('batchAlgorithm').value;
+    
+    if (!width && !height) {
+      this.showNotification('Adjon meg legalább egy méretet (szélesség vagy magasság)!', 'warning');
+      return;
+    }
+    
+    try {
+      this.showProgressModal('Tömeges átméretezés folyamatban...');
+      
+      for (let i = 0; i < this.images.length; i++) {
+        const image = this.images[i];
+        this.updateProgressModal(`Feldolgozás: ${image.name}`, (i / this.images.length) * 100);
+        
+        const settings = {
+          format: format,
+          quality: 1,
+          width: width ? parseInt(width) : null,
+          height: height ? parseInt(height) : null,
+          maintainAspect: true,
+          algorithm: algorithm
+        };
+        
+        this.processingOptions.algorithm = algorithm;
+        await this.processImageWithSettings(image.id, settings);
+      }
+      
+      this.hideProgressModal();
+      this.showNotification(`${this.images.length} kép sikeresen átméretezve!`, 'success');
+      
+    } catch (error) {
+      this.hideProgressModal();
+      console.error('Batch resize failed:', error);
+      this.showNotification('Tömeges átméretezés sikertelen!', 'error');
+    }
+  }
+  
+  async batchConvert() {
+    if (this.images.length === 0) {
+      this.showNotification('Nincs feltöltött kép a konvertáláshoz!', 'warning');
+      return;
+    }
+    
+    const format = document.getElementById('batchFormat').value;
+    const algorithm = document.getElementById('batchAlgorithm').value;
+    
+    try {
+      this.showProgressModal('Tömeges formátum váltás folyamatban...');
+      
+      for (let i = 0; i < this.images.length; i++) {
+        const image = this.images[i];
+        this.updateProgressModal(`Konvertálás: ${image.name}`, (i / this.images.length) * 100);
+        
+        const settings = {
+          format: format,
+          quality: 1,
+          width: null, // No resizing, just format conversion
+          height: null,
+          maintainAspect: true,
+          algorithm: algorithm
+        };
+        
+        this.processingOptions.algorithm = algorithm;
+        await this.processImageWithSettings(image.id, settings);
+      }
+      
+      this.hideProgressModal();
+      this.showNotification(`${this.images.length} kép sikeresen konvertálva ${format.toUpperCase()} formátumba!`, 'success');
+      
+    } catch (error) {
+      this.hideProgressModal();
+      console.error('Batch convert failed:', error);
+      this.showNotification('Tömeges formátum váltás sikertelen!', 'error');
+    }
+  }
+  
+  async batchDownloadZip() {
+    if (this.images.length === 0) {
+      this.showNotification('Nincs kép a letöltéshez!', 'warning');
+      return;
+    }
+    
+    try {
+      // Check if JSZip is available
+      if (!window.JSZip) {
+        this.showNotification('ZIP funkció nem elérhető!', 'error');
+        return;
+      }
+      
+      this.showProgressModal('ZIP fájl létrehozása...');
+      
+      const zip = new JSZip();
+      const format = document.getElementById('batchFormat').value;
+      
+      for (let i = 0; i < this.images.length; i++) {
+        const image = this.images[i];
+        this.updateProgressModal(`ZIP-be csomagolás: ${image.name}`, (i / this.images.length) * 50);
+        
+        let imageData;
+        if (image.processed && image.processedSrc) {
+          // Use processed version if available
+          imageData = image.processedSrc;
+        } else {
+          // Use original
+          imageData = image.src;
+        }
+        
+        // Convert data URL to blob
+        const response = await fetch(imageData);
+        const blob = await response.blob();
+        
+        // Add to ZIP with new name
+        const extension = format || image.file.type.split('/')[1];
+        const filename = `${image.name.split('.')[0]}_processed.${extension}`;
+        zip.file(filename, blob);
+      }
+      
+      this.updateProgressModal('ZIP fájl generálása...', 75);
+      
+      // Generate ZIP
+      const content = await zip.generateAsync({type: 'blob'});
+      
+      // Download ZIP
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `imageflow_batch_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      this.hideProgressModal();
+      this.showNotification(`${this.images.length} kép sikeresen letöltve ZIP fájlban!`, 'success');
+      
+    } catch (error) {
+      this.hideProgressModal();
+      console.error('Batch ZIP download failed:', error);
+      this.showNotification('ZIP letöltés sikertelen!', 'error');
+    }
+  }
+  
+  // Apply quick preset to batch controls
+  applyBatchPreset(preset) {
+    const presets = {
+      thumbnail: { width: 300, height: 300 },
+      social: { width: 1080, height: 1080 },
+      web: { width: 1920, height: 1080 },
+      hd: { width: 1280, height: 720 }
+    };
+    
+    const settings = presets[preset];
+    if (settings) {
+      document.getElementById('batchWidth').value = settings.width;
+      document.getElementById('batchHeight').value = settings.height;
+      this.showNotification(`${preset.toUpperCase()} preset alkalmazva!`, 'success');
+    }
+  }
+  
   applyPreset(preset) {
     // Professional lossless presets
     const presets = {
@@ -809,7 +1079,7 @@ class ImageFlowApp {
     
     document.getElementById('customWidth').value = config.width;
     document.getElementById('customHeight').value = config.height || '';
-    document.getElementById('qualitySlider').value = config.quality;
+    // Quality is always lossless (100%)
     document.getElementById('qualityValue').textContent = `${config.quality}%`;
     document.getElementById('quickFormat').value = config.format;
     
@@ -823,7 +1093,7 @@ class ImageFlowApp {
     }
     
     const format = document.getElementById('quickFormat').value;
-    const quality = parseInt(document.getElementById('qualitySlider').value) / 100;
+    const quality = 1; // Always lossless quality
     
     this.showProgress(true, 'Gyors feldolgozás...', this.images.length);
     
@@ -845,7 +1115,7 @@ class ImageFlowApp {
     }
     
     const format = document.getElementById('quickFormat').value;
-    const quality = parseInt(document.getElementById('qualitySlider').value) / 100;
+    const quality = 1; // Always lossless quality
     const width = parseInt(document.getElementById('customWidth').value) || null;
     const height = parseInt(document.getElementById('customHeight').value) || null;
     const maintainAspect = document.getElementById('maintainAspect').checked;
@@ -870,7 +1140,7 @@ class ImageFlowApp {
     if (!image) return;
     
     const format = document.getElementById('quickFormat').value;
-    const quality = parseInt(document.getElementById('qualitySlider').value) / 100;
+    const quality = 1; // Always lossless quality
     
     await this.processImageWithSettings(imageId, { format, quality });
     this.updateStats();
@@ -1177,6 +1447,74 @@ class ImageFlowApp {
       this.showNotification('Formátum konverzió sikertelen!', 'error');
     }
   }
+  
+  // Individual image processing with custom settings
+  async processIndividualImage(imageId) {
+    const image = this.images.find(img => img.id == imageId);
+    if (!image) return;
+    
+    try {
+      const width = document.getElementById(`width_${imageId}`).value || null;
+      const height = document.getElementById(`height_${imageId}`).value || null;
+      const format = document.getElementById(`format_${imageId}`).value;
+      const algorithm = document.getElementById(`algorithm_${imageId}`).value;
+      
+      const settings = {
+        format: format,
+        quality: 1, // Lossless quality
+        width: width ? parseInt(width) : null,
+        height: height ? parseInt(height) : null,
+        maintainAspect: true,
+        algorithm: algorithm
+      };
+      
+      // Update processing algorithm
+      this.processingOptions.algorithm = algorithm;
+      
+      this.showNotification('Egyedi feldolgozás indítása...', 'info');
+      
+      await this.processImageWithSettings(imageId, settings);
+      
+      this.showNotification(`Kép sikeresen feldolgozva (${format.toUpperCase()})! Letöltéshez kattints a Letöltés gombra.`, 'success');
+      
+    } catch (error) {
+      console.error('Individual processing failed:', error);
+      this.showNotification('Egyedi feldolgozás sikertelen!', 'error');
+    }
+  }
+  
+  // Convert individual image format without resizing
+  async convertIndividualFormat(imageId) {
+    const image = this.images.find(img => img.id == imageId);
+    if (!image) return;
+    
+    try {
+      const format = document.getElementById(`format_${imageId}`).value;
+      const algorithm = document.getElementById(`algorithm_${imageId}`).value;
+      
+      const settings = {
+        format: format,
+        quality: 1, // Lossless quality
+        width: null, // No resizing
+        height: null, // No resizing
+        maintainAspect: true,
+        algorithm: algorithm
+      };
+      
+      // Update processing algorithm
+      this.processingOptions.algorithm = algorithm;
+      
+      this.showNotification('Formátum konverzió indítása...', 'info');
+      
+      await this.processImageWithSettings(imageId, settings);
+      
+      this.showNotification(`Formátum sikeresen konvertálva (${format.toUpperCase()})! Letöltéshez kattints a Letöltés gombra.`, 'success');
+      
+    } catch (error) {
+      console.error('Individual format conversion failed:', error);
+      this.showNotification('Formátum konverzió sikertelen!', 'error');
+    }
+  }
 
   // Professional Crop Functionality
   initializeCropMode(imageId) {
@@ -1270,8 +1608,11 @@ class ImageFlowApp {
           <button onclick="app.closeCropMode()" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">
             Mégse
           </button>
-          <button onclick="app.applyCropAndDownload()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
-            Kivágás és Letöltés
+          <button onclick="app.applyCrop()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
+            Kivágás Alkalmazása
+          </button>
+          <button onclick="app.applyCropAndDownload()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+            Kivágás & Letöltés
           </button>
         </div>
       </div>
@@ -1529,6 +1870,55 @@ class ImageFlowApp {
     this.cropState.imageId = null;
   }
   
+  // Apply crop without downloading
+  async applyCrop() {
+    if (!this.cropState.cropArea.width || !this.cropState.cropArea.height) {
+      this.showNotification('Kérjük, jelöljön ki egy területet a vágáshoz!', 'warning');
+      return;
+    }
+    
+    try {
+      const image = this.images.find(img => img.id == this.cropState.imageId);
+      if (!image) return;
+      
+      // Convert canvas coordinates back to original image coordinates
+      const scale = this.cropState.scale;
+      const cropArea = {
+        x: Math.round(this.cropState.cropArea.x / scale),
+        y: Math.round(this.cropState.cropArea.y / scale),
+        width: Math.round(this.cropState.cropArea.width / scale),
+        height: Math.round(this.cropState.cropArea.height / scale)
+      };
+      
+      // Get selected algorithm
+      const algorithm = document.getElementById('cropAlgorithm').value;
+      
+      // Process cropped image with lossless quality
+      const croppedImageData = await this.processCroppedImage(image, cropArea, algorithm);
+      
+      // Update image with cropped version
+      image.processed = true;
+      image.processedSrc = croppedImageData.dataUrl;
+      image.processedSize = croppedImageData.size || this.calculateDataUrlSize(croppedImageData.dataUrl);
+      image.processedFormat = 'png';
+      image.processedDimensions = { width: croppedImageData.width, height: croppedImageData.height };
+      
+      // Update storage statistics
+      this.storageData.compressedSize += image.processedSize;
+      this.processingStats.totalProcessed++;
+      
+      // Refresh gallery display
+      this.updateImageGallery();
+      
+      this.showNotification('Kivágás sikeresen alkalmazva! (Letöltéshez kattints a Letöltés gombra)', 'success');
+      this.closeCropMode();
+      
+    } catch (error) {
+      console.error('Crop failed:', error);
+      this.showNotification('Vágás sikertelen!', 'error');
+    }
+  }
+  
   async applyCropAndDownload() {
     if (!this.cropState.cropArea.width || !this.cropState.cropArea.height) {
       this.showNotification('Kérjük, jelöljön ki egy területet a vágáshoz!', 'warning');
@@ -1564,6 +1954,179 @@ class ImageFlowApp {
       console.error('Crop and download failed:', error);
       this.showNotification('Vágás és letöltés sikertelen!', 'error');
     }
+  }
+  
+  // Helper function to calculate data URL size
+  calculateDataUrlSize(dataUrl) {
+    const base64Length = dataUrl.split(',')[1].length;
+    return Math.round(base64Length * 0.75);
+  }
+  
+  // Professional blur functionality
+  async applyBlurToImage(canvas, blurAmount, blurType = 'all') {
+    if (blurAmount === 0) return canvas;
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    // Create a copy of the original canvas
+    const originalCanvas = document.createElement('canvas');
+    const originalCtx = originalCanvas.getContext('2d');
+    originalCanvas.width = width;
+    originalCanvas.height = height;
+    originalCtx.drawImage(canvas, 0, 0);
+    
+    // Apply CSS filter blur (fastest method)
+    ctx.filter = `blur(${blurAmount}px)`;
+    
+    switch (blurType) {
+      case 'all':
+        // Blur entire image
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(originalCanvas, 0, 0);
+        break;
+        
+      case 'top':
+        // Blur top 33%
+        const topHeight = Math.round(height * 0.33);
+        ctx.clearRect(0, 0, width, topHeight);
+        ctx.drawImage(originalCanvas, 0, 0, width, topHeight, 0, 0, width, topHeight);
+        // Restore bottom part without blur
+        ctx.filter = 'none';
+        ctx.drawImage(originalCanvas, 0, topHeight, width, height - topHeight, 0, topHeight, width, height - topHeight);
+        break;
+        
+      case 'bottom':
+        // Blur bottom 33%
+        const bottomStart = Math.round(height * 0.67);
+        ctx.filter = 'none';
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(originalCanvas, 0, 0, width, bottomStart, 0, 0, width, bottomStart);
+        // Apply blur to bottom
+        ctx.filter = `blur(${blurAmount}px)`;
+        ctx.drawImage(originalCanvas, 0, bottomStart, width, height - bottomStart, 0, bottomStart, width, height - bottomStart);
+        break;
+        
+      case 'center':
+        // Blur center 33%
+        const centerStart = Math.round(height * 0.33);
+        const centerEnd = Math.round(height * 0.67);
+        ctx.filter = 'none';
+        ctx.clearRect(0, 0, width, height);
+        // Top part (no blur)
+        ctx.drawImage(originalCanvas, 0, 0, width, centerStart, 0, 0, width, centerStart);
+        // Bottom part (no blur)
+        ctx.drawImage(originalCanvas, 0, centerEnd, width, height - centerEnd, 0, centerEnd, width, height - centerEnd);
+        // Center part (with blur)
+        ctx.filter = `blur(${blurAmount}px)`;
+        ctx.drawImage(originalCanvas, 0, centerStart, width, centerEnd - centerStart, 0, centerStart, width, centerEnd - centerStart);
+        break;
+        
+      case 'edges':
+        // Blur edges (25% from each side)
+        const edgeSize = Math.round(width * 0.25);
+        const centerWidth = width - (edgeSize * 2);
+        ctx.filter = 'none';
+        ctx.clearRect(0, 0, width, height);
+        // Center area (no blur)
+        ctx.drawImage(originalCanvas, edgeSize, 0, centerWidth, height, edgeSize, 0, centerWidth, height);
+        // Left and right edges (with blur)
+        ctx.filter = `blur(${blurAmount}px)`;
+        ctx.drawImage(originalCanvas, 0, 0, edgeSize, height, 0, 0, edgeSize, height); // Left
+        ctx.drawImage(originalCanvas, width - edgeSize, 0, edgeSize, height, width - edgeSize, 0, edgeSize, height); // Right
+        break;
+    }
+    
+    // Reset filter
+    ctx.filter = 'none';
+    
+    return canvas;
+  }
+  
+  // Enhanced batch processing with blur
+  async batchApplyBlur() {
+    if (this.images.length === 0) {
+      this.showNotification('Nincs kép a homályosításhoz!', 'warning');
+      return;
+    }
+    
+    const blurAmount = parseFloat(document.getElementById('blurSlider').value || 0);
+    const blurType = document.getElementById('blurType').value;
+    
+    if (blurAmount === 0) {
+      this.showNotification('Állítsa be a homályosítás intenzitását!', 'warning');
+      return;
+    }
+    
+    try {
+      this.showProgressModal('Tömeges homályosítás folyamatban...');
+      
+      for (let i = 0; i < this.images.length; i++) {
+        const image = this.images[i];
+        this.updateProgressModal(`Homályosítás: ${image.name}`, (i / this.images.length) * 100);
+        
+        await this.processImageWithBlur(image.id, blurAmount, blurType);
+      }
+      
+      this.hideProgressModal();
+      this.showNotification(`${this.images.length} kép sikeresen homályosítva!`, 'success');
+      
+    } catch (error) {
+      this.hideProgressModal();
+      console.error('Batch blur failed:', error);
+      this.showNotification('Tömeges homályosítás sikertelen!', 'error');
+    }
+  }
+  
+  // Process individual image with blur
+  async processImageWithBlur(imageId, blurAmount, blurType) {
+    const image = this.images.find(img => img.id == imageId);
+    if (!image) return;
+    
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = async () => {
+        try {
+          // Create canvas with original image
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0);
+          
+          // Apply blur effect
+          const blurredCanvas = await this.applyBlurToImage(canvas, blurAmount, blurType);
+          
+          // Convert to high-quality PNG
+          const dataUrl = blurredCanvas.toDataURL('image/png');
+          
+          // Update image data
+          image.processed = true;
+          image.processedSrc = dataUrl;
+          image.processedSize = this.calculateDataUrlSize(dataUrl);
+          image.processedFormat = 'png';
+          image.processedDimensions = { width: canvas.width, height: canvas.height };
+          
+          // Update statistics
+          this.storageData.compressedSize += image.processedSize;
+          this.processingStats.totalProcessed++;
+          
+          resolve();
+          
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      img.onerror = () => reject(new Error('Failed to load image for blur processing'));
+      img.src = image.src;
+    });
   }
   
   async processCroppedImage(image, cropArea, algorithm = 'lanczos') {
